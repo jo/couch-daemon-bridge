@@ -3,54 +3,88 @@
  */
 
 var util = require('util');
-var split = require('split');
+var es = require('event-stream');
 
-var config = exports.config = {};
+module.exports = function(stdin, stdout, exit) {
+  var config = {};
+  var lastConfigKey;
 
-function write(json) {
-  process.stdout.write(JSON.stringify(json) + '\n');
-}
-
-exports.log = function(msg, level) {
-  var cmd = ['register', msg];
-
-  if (level) {
-    cmd = cmd.concat({ level: level });
+  function write(json) {
+    stdout.write(JSON.stringify(json) + '\n');
   }
 
-  write(cmd);
-};
+  // call exit when stdin closes
+  stdin.on('end', exit);
 
-exports.get = function(section, key) {
-  var cmd = ['get', section];
+  // parse configuration
+  es.pipeline(
+    stdin,
+    es.split(),
+    es.map(function map(line, next) {
+      if (!line) {
+        return;
+      }
 
-  if (key) {
-    cmd = cmd.concat(key);
-  }
+      var obj = JSON.parse(line);
 
-  write(cmd);
-};
+      if (lastConfigKey && typeof obj === 'string') {
+        var value = obj;
+        obj = {};
+        obj[lastConfigKey] = value;
+      }
 
-exports.register = function(section, key) {
-  var cmd = ['register', section];
+      // update configuration
+      util._extend(config, obj);
 
-  if (key) {
-    cmd = cmd.concat(key);
-  }
+      // log out updated configuration
+      var msg = [
+        'log',
+        'updated configuration: ' + JSON.stringify(config),
+        { level: 'debug' }
+      ];
 
-  write(cmd);
-};
-
-// exit when stdin closes
-process.stdin.on('end', function () {
-  process.exit(0);
-});
-
-// parse configuration
-process.stdin.pipe(split(JSON.parse))
-  .on('data', function(obj) {
-    util._extend(config, obj);
-  })
-  .on('error', function(err) {
-    exports.log(err, 'error')
+      next(null, JSON.stringify(config) + '\n');
+    }),
+    stdout
+  ).on('error', function(err) {
+    console.log('Error: ', err);
   });
+
+  return {
+    config: config,
+
+    // Log a message and return log stream
+    log: function log(msg, level) {
+      var cmd = ['log', msg];
+
+      if (level) {
+        cmd = cmd.concat({ level: level });
+      }
+
+      write(cmd);
+    },
+
+    // Request configuration parameter
+    get: function get(section, key) {
+      var cmd = ['get', section];
+
+      if (key) {
+        lastConfigKey = key;
+        cmd = cmd.concat(key);
+      }
+
+      write(cmd);
+    },
+
+    // Register restart on configuration change
+    register: function register(section, key) {
+      var cmd = ['register', section];
+
+      if (key) {
+        cmd = cmd.concat(key);
+      }
+
+      write(cmd);
+    }
+  };
+};
