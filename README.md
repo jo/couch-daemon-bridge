@@ -24,6 +24,12 @@ daemon.get('my_daemon');
 // Access configuration
 daemon.config // { bind_address: '127.0.0.1', my_daemon: { foo: 'bar' } }
 
+// Listen to config changes
+var feed = daemon.get('my_daemon');
+feed.on('data', function(config) {
+  // config object
+});
+
 // Register daemon to be restarted when configuration changes
 daemon.register('my_daemon');
 daemon.register('httpd', 'bind_address');

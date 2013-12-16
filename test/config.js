@@ -103,3 +103,25 @@ test('update key configuration', function(t) {
   stdin.emit('end');
 });
 
+test('notify updated configuration', function(t) {
+  var stdin = new stream.Stream();
+  stdin.readable = true;
+
+  var stdout = new stream.Stream();
+  stdout.writable = true;
+  stdout.write = function() {};
+
+  var d = daemon(stdin, stdout, function() {
+    t.end();
+  });
+
+  var feed = d.get('my_section', 'foo');
+  feed.on('data', function(data) {
+    t.deepEqual(d.config, { foo: 'bar' }, 'config should include "foo"');
+  });
+
+  stdin.emit('data', JSON.stringify('bar') + '\n');
+
+  stdin.emit('end');
+});
+

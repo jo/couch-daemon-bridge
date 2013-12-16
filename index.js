@@ -7,7 +7,7 @@ var es = require('event-stream');
 
 module.exports = function(stdin, stdout, exit) {
   var config = {};
-  var lastConfigKey;
+  var configKeys = [];
 
   function write(json) {
     stdout.write(JSON.stringify(json) + '\n');
@@ -17,7 +17,7 @@ module.exports = function(stdin, stdout, exit) {
   stdin.on('end', exit);
 
   // parse configuration
-  es.pipeline(
+  var configurator = es.pipeline(
     stdin,
     es.split(),
     es.map(function map(line, next) {
@@ -26,30 +26,39 @@ module.exports = function(stdin, stdout, exit) {
       }
 
       var obj = JSON.parse(line);
-
-      if (lastConfigKey && typeof obj === 'string') {
+      var configKey = configKeys.shift();
+      if (configKey && typeof obj === 'string') {
         var value = obj;
         obj = {};
-        obj[lastConfigKey] = value;
+        obj[configKey] = value;
       }
 
       // update configuration
       util._extend(config, obj);
 
+      next(null, config);
+    })
+  );
+
+  configurator.on('error', function(err) {
+    console.log('Error: ', err);
+  });
+
+  es.pipeline(
+    configurator,
+    es.map(function map(data, next) {
       // log out updated configuration
       var msg = [
         'log',
-        'updated config: ' + JSON.stringify(config),
+        'updated config: ' + JSON.stringify(data),
         { level: 'debug' }
       ];
 
       next(null, JSON.stringify(msg) + '\n');
     }),
     stdout
-  ).on('error', function(err) {
-    console.log('Error: ', err);
-  });
-
+  );
+  
   return {
     config: config,
 
@@ -69,11 +78,13 @@ module.exports = function(stdin, stdout, exit) {
       var cmd = ['get', section];
 
       if (key) {
-        lastConfigKey = key;
+        configKeys.push(key);
         cmd = cmd.concat(key);
       }
 
       write(cmd);
+
+      return configurator;
     },
 
     // Register restart on configuration change
