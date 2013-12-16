@@ -29,4 +29,10 @@ daemon.register('my_daemon');
 daemon.register('httpd', 'bind_address');
 ```
 
+Contributing
+------------
+1. Write tests with [tap](https://github.com/isaacs/node-tap)
+2. Lint your code with `npm run jshint`
+3. Run the tests with `npm test`
+
 (c) 2013 Johannes J. Schmidt

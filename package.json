@@ -4,7 +4,8 @@
   "description": "Use CouchDBs os_daemons with node.",
   "main": "index.js",
   "scripts": {
-    "test": "tap test/*.js"
+    "test": "tap test/*.js",
+    "jshint": "jshint -c .jshintrc index.js test/*.js"
   },
   "repository": {
     "type": "git",
@@ -21,7 +22,8 @@
   },
   "homepage": "https://github.com/jo/os-daemon",
   "devDependencies": {
-    "tap": "~0.4.6"
+    "tap": "~0.4.6",
+    "jshint": "~2.3.0"
   },
   "dependencies": {
     "event-stream": "~3.0.20"

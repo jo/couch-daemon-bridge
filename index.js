@@ -39,11 +39,11 @@ module.exports = function(stdin, stdout, exit) {
       // log out updated configuration
       var msg = [
         'log',
-        'updated configuration: ' + JSON.stringify(config),
+        'updated config: ' + JSON.stringify(config),
         { level: 'debug' }
       ];
 
-      next(null, JSON.stringify(config) + '\n');
+      next(null, JSON.stringify(msg) + '\n');
     }),
     stdout
   ).on('error', function(err) {

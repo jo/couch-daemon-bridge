@@ -8,7 +8,7 @@ test('configuration object', function(t) {
 
   var stdout = new stream.Stream();
   stdout.writable = true;
-  stdout.write = function(data) {};
+  stdout.write = function() {};
 
   var d = daemon(stdin, stdout, function() {
     t.end();
