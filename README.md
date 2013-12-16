@@ -11,28 +11,15 @@ var daemon = require('os-daemon')(process.stdin, process.stdout, function() {
 });
 
 // Log a message
-daemon.log('My daemon is starting.');
-// ... with a specific log level
-daemon.log('I have many options!', 'debug');
+daemon.info('My daemon is starting.');
+daemon.debug('I have so much wow...');
+daemon.error('An error occured!');
 
-// Request a specific configuration
-daemon.get('httpd', 'bind_address');
-
-// Request a whole configuration section
-daemon.get('my_daemon');
-
-// Access configuration
-daemon.config // { bind_address: '127.0.0.1', my_daemon: { foo: 'bar' } }
-
-// Listen to config changes
-var feed = daemon.get('my_daemon');
-feed.on('data', function(config) {
-  // config object
+// Request configuration
+daemon.get('httpd.bind_address', function(data) {
+  // data is now a string holding the value
 });
 
-// Register daemon to be restarted when configuration changes
-daemon.register('my_daemon');
-daemon.register('httpd', 'bind_address');
 ```
 
 Contributing

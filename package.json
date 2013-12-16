@@ -26,6 +26,7 @@
     "jshint": "~2.3.0"
   },
   "dependencies": {
-    "event-stream": "~3.0.20"
+    "event-stream": "~3.0.20",
+    "async": "~0.2.9"
   }
 }

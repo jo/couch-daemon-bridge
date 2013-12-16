@@ -3,99 +3,109 @@
  */
 
 var util = require('util');
+var async = require('async');
 var es = require('event-stream');
 
-module.exports = function(stdin, stdout, exit) {
-  var config = {};
-  var configKeys = [];
+module.exports = function(read, write, exit) {
+  // call exit when read stream close
+  read.on('end', exit);
 
-  function write(json) {
-    stdout.write(JSON.stringify(json) + '\n');
-  }
-
-  // call exit when stdin closes
-  stdin.on('end', exit);
-
-  // parse configuration
-  var configurator = es.pipeline(
-    stdin,
+  // Parse newline separated JSON from stdin
+  var stdin = es.pipeline(
+    read,
     es.split(),
-    es.map(function map(line, next) {
-      if (!line) {
-        return;
-      }
-
-      var obj = JSON.parse(line);
-      var configKey = configKeys.shift();
-      if (configKey && typeof obj === 'string') {
-        var value = obj;
-        obj = {};
-        obj[configKey] = value;
-      }
-
-      // update configuration
-      util._extend(config, obj);
-
-      next(null, config);
-    })
+    es.parse()
   );
-
-  configurator.on('error', function(err) {
-    console.log('Error: ', err);
+  stdin.on('error', function(err) {
+    console.error('parse error: ' + err);
   });
 
-  es.pipeline(
-    configurator,
-    es.map(function map(data, next) {
-      // log out updated configuration
-      var msg = [
-        'log',
-        'updated config: ' + JSON.stringify(data),
-        { level: 'debug' }
-      ];
-
-      next(null, JSON.stringify(msg) + '\n');
-    }),
-    stdout
+  // Stringify data and append newlines to stdout
+  var stdout = es.pipeline(
+    es.stringify(),
+    write
   );
-  
-  return {
-    config: config,
+  stdout.on('error', function(err) {
+    console.error('write error: ' + err);
+  });
 
-    // Log a message and return log stream
-    log: function log(msg, level) {
+
+  // return a logger method for loglevel
+  function logger(level) {
+    return function(msg) {
+      if (!arguments.length) {
+        return es.pipeline(
+          es.map(function(data, done) {
+            var cmd = ['log', data];
+            if (level) {
+              cmd = cmd.concat({ level: level });
+            }
+            done(null, cmd);
+          }),
+          stdout
+        );
+      }
+
       var cmd = ['log', msg];
-
       if (level) {
         cmd = cmd.concat({ level: level });
       }
+      stdout.write(cmd);
+    }
+  };
 
-      write(cmd);
-    },
 
-    // Request configuration parameter
-    get: function get(section, key) {
-      var cmd = ['get', section];
+  // Request single configuration value
+  // and register for newstart on change
+  function getValue(value, callback) {
+    var parts = value.split('.');
 
-      if (key) {
-        configKeys.push(key);
-        cmd = cmd.concat(key);
+    if (typeof callback === 'function') {
+      stdin.once('data', callback);
+    }
+
+    stdout.write(['register'].concat(parts));
+    stdout.write(['get'].concat(parts));
+
+    return stdin;
+  }
+
+  return {
+    // logging
+    info: logger(),
+    error: logger('error'),
+    debug: logger('debug'),
+
+    // configuration
+    get: function get(stringOrObject, callback, ret) {
+      if (typeof stringOrObject === 'string') {
+        return getValue(stringOrObject, callback);
       }
 
-      write(cmd);
+      ret = ret || {};
 
-      return configurator;
-    },
+      function getPart(key, next) {
+        if (typeof stringOrObject[key] === 'object') {
+          return get(stringOrObject[key], next, ret[key]);
+        }
 
-    // Register restart on configuration change
-    register: function register(section, key) {
-      var cmd = ['register', section];
+        getValue(stringOrObject[key], function(c) {
+          var r = {};
 
-      if (key) {
-        cmd = cmd.concat(key);
+          r[key] = c;
+
+          next(null, r);
+        });
       }
 
-      write(cmd);
+      async.mapSeries(Object.keys(stringOrObject).sort(), getPart, function(err, res) {
+        res.forEach(function(r) {
+          util._extend(ret, r);
+        });
+
+        callback(ret);
+      });
     }
   };
 };
+

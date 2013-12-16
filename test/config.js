@@ -1,127 +1,50 @@
+var es = require('event-stream');
 var stream = require('stream');
 var test = require('tap').test;
 var daemon = require('..');
 
+test('single configuration key', function(t) {
+  var stdin = es.readArray([
+      'my_value'
+    ])
+    .pipe(es.stringify());
+
+  var stdout = es.writeArray(function(err, data) {
+    var message;
+
+    message = JSON.stringify(['register', 'my_section', 'my_key']) + '\n';
+    t.equal(data[0], message, 'should have registered for "my_key" in "my_section"');
+
+    message = JSON.stringify(['get', 'my_section', 'my_key']) + '\n';
+    t.equal(data[1], message, 'should have requested "my_key" in "my_section" config');
+  });
+
+  var d = daemon(stdin, stdout, function() {
+    t.end();
+  });
+
+  d.get('my_section.my_key', function(key) {
+    t.equal(key, 'my_value', 'correct value returned');
+  });
+});
+
 test('configuration object', function(t) {
-  var stdin = new stream.Stream();
-  stdin.readable = true;
+  var stdin = es.readArray([
+      'other_value',
+      'my_value'
+    ])
+    .pipe(es.stringify());
 
-  var stdout = new stream.Stream();
-  stdout.writable = true;
-  stdout.write = function() {};
-
-  var d = daemon(stdin, stdout, function() {
-    t.end();
-  });
-
-  t.deepEqual(d.config, {}, 'config should be an object');
-
-  stdin.emit('end');
-});
-
-test('request section configuration', function(t) {
-  var stdin = new stream.Stream();
-  stdin.readable = true;
-
-  var stdout = new stream.Stream();
-  stdout.writable = true;
-  stdout.write = function(data) {
-    var message = JSON.stringify(['get', 'my_section']) + '\n';
-
-    return t.equal(data, message, 'should have requested "my_section" config');
-  };
+  var stdout = es.writeArray(function() {});
 
   var d = daemon(stdin, stdout, function() {
     t.end();
   });
 
-  d.get('my_section');
-
-  stdin.emit('end');
-});
-
-test('update section configuration', function(t) {
-  var stdin = new stream.Stream();
-  stdin.readable = true;
-
-  var stdout = new stream.Stream();
-  stdout.writable = true;
-  stdout.write = function() {};
-
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  d.get({
+    foo: 'my_section.my_key',
+    bar: 'my_section.other_key'
+  }, function(value) {
+    t.deepEqual(value, { foo: 'my_value', bar: 'other_value' }, 'correct value returned');
   });
-
-  d.get('my_section');
-
-  stdin.emit('data', JSON.stringify({ foo: 'bar' }) + '\n');
-
-  t.deepEqual(d.config, { foo: 'bar' }, 'config should include "foo"');
-
-  stdin.emit('end');
 });
-
-test('request key configuration', function(t) {
-  var stdin = new stream.Stream();
-  stdin.readable = true;
-
-  var stdout = new stream.Stream();
-  stdout.writable = true;
-  stdout.write = function(data) {
-    var message = JSON.stringify(['get', 'my_section', 'my_key']) + '\n';
-
-    return t.equal(data, message, 'should have requested "my_key" in "my_section" config');
-  };
-
-  var d = daemon(stdin, stdout, function() {
-    t.end();
-  });
-
-  d.get('my_section', 'my_key');
-
-  stdin.emit('end');
-});
-
-test('update key configuration', function(t) {
-  var stdin = new stream.Stream();
-  stdin.readable = true;
-
-  var stdout = new stream.Stream();
-  stdout.writable = true;
-  stdout.write = function() {};
-
-  var d = daemon(stdin, stdout, function() {
-    t.end();
-  });
-
-  d.get('my_section', 'foo');
-
-  stdin.emit('data', JSON.stringify('bar') + '\n');
-
-  t.deepEqual(d.config, { foo: 'bar' }, 'config should include "foo"');
-
-  stdin.emit('end');
-});
-
-test('notify updated configuration', function(t) {
-  var stdin = new stream.Stream();
-  stdin.readable = true;
-
-  var stdout = new stream.Stream();
-  stdout.writable = true;
-  stdout.write = function() {};
-
-  var d = daemon(stdin, stdout, function() {
-    t.end();
-  });
-
-  var feed = d.get('my_section', 'foo');
-  feed.on('data', function(data) {
-    t.deepEqual(d.config, { foo: 'bar' }, 'config should include "foo"');
-  });
-
-  stdin.emit('data', JSON.stringify('bar') + '\n');
-
-  stdin.emit('end');
-});
-
