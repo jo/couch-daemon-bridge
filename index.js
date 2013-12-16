@@ -86,6 +86,7 @@ module.exports = function(read, write, exit) {
 
       function getPart(key, next) {
         if (typeof stringOrObject[key] === 'object') {
+          ret[key] = {};
           return get(stringOrObject[key], next, ret[key]);
         }
 

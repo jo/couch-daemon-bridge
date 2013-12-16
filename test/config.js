@@ -48,3 +48,34 @@ test('configuration object', function(t) {
     t.deepEqual(value, { foo: 'my_value', bar: 'other_value' }, 'correct value returned');
   });
 });
+
+test('nested configuration object', function(t) {
+  var stdin = es.readArray([
+      'other_value',
+      'my_value',
+      'nested_value'
+    ])
+    .pipe(es.stringify());
+
+  var stdout = es.writeArray(function() {});
+
+  var d = daemon(stdin, stdout, function() {
+    t.end();
+  });
+
+  d.get({
+    foo: 'my_section.my_key',
+    bar: 'my_section.other_key',
+    nested: {
+      baz: 'my_section.nested_value'
+    }
+  }, function(value) {
+    t.deepEqual(value, {
+      foo: 'my_value',
+      bar: 'other_value',
+      nested: {
+        baz: 'nested_value'
+      }
+    }, 'correct value returned');
+  });
+});
