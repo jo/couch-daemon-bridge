@@ -1,0 +1,28 @@
+{
+  "name": "os-daemon",
+  "version": "0.0.1",
+  "description": "Use CouchDBs os_daemons with node.",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jo/os-daemon"
+  },
+  "keywords": [
+    "couchdb",
+    "daemon"
+  ],
+  "author": "Johannes J. Schmidt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jo/os-daemon/issues"
+  },
+  "homepage": "https://github.com/jo/os-daemon",
+  "devDependencies": {
+    "tap": "~0.4.6"
+  },
+  "dependencies": {
+  }
+}
