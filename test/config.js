@@ -1,5 +1,4 @@
 var es = require('event-stream');
-var stream = require('stream');
 var test = require('tap').test;
 var daemon = require('..');
 

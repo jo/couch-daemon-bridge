@@ -51,8 +51,8 @@ module.exports = function(read, write, exit) {
         cmd = cmd.concat({ level: level });
       }
       stdout.write(cmd);
-    }
-  };
+    };
+  }
 
 
   // Request single configuration value
