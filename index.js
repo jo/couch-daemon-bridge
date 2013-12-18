@@ -32,24 +32,27 @@ module.exports = function(read, write, exit) {
 
   // return a logger method for loglevel
   function logger(level) {
+    var pipeline = es.pipeline(
+      es.map(function(data, done) {
+        var cmd = ['log', data];
+        if (level) {
+          cmd = cmd.concat({ level: level });
+        }
+        done(null, cmd);
+      }),
+      stdout
+    );
+
     return function(msg) {
       if (!arguments.length) {
-        return es.pipeline(
-          es.map(function(data, done) {
-            var cmd = ['log', data];
-            if (level) {
-              cmd = cmd.concat({ level: level });
-            }
-            done(null, cmd);
-          }),
-          stdout
-        );
+        return  pipeline;
       }
 
       var cmd = ['log', msg];
       if (level) {
         cmd = cmd.concat({ level: level });
       }
+
       stdout.write(cmd);
     };
   }
