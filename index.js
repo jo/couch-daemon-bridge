@@ -64,16 +64,18 @@ module.exports = function(read, write, exit) {
     var parts = value.split('.');
 
     if (parts.length !== 2) {
-      return callback();
+      return callback({ error: 'malformed config key', reason: 'Keys must be of the form "section.key"' });
     }
 
     var env = parts.map(function(p) { return p.toUpperCase(); }).join('_');
     if (process.env[env]) {
-      return callback(process.env[env]);
+      return callback(null, process.env[env]);
     }
 
     if (typeof callback === 'function') {
-      stdin.once('data', callback);
+      stdin.once('data', function(data) {
+        callback(null, data);
+      });
     }
 
     stdout.write(['register'].concat(parts));
@@ -89,20 +91,27 @@ module.exports = function(read, write, exit) {
     debug: logger('debug'),
 
     // configuration
-    get: function get(stringOrObject, callback, ret) {
+    get: function get(stringOrObject, callback) {
       if (typeof stringOrObject === 'string') {
         return getValue(stringOrObject, callback);
       }
 
-      ret = ret || {};
+      var value = {};
 
       function getPart(key, next) {
         if (typeof stringOrObject[key] === 'object') {
-          ret[key] = {};
-          return get(stringOrObject[key], next, ret[key]);
+          get(stringOrObject[key], function(err, r) {
+            value[key] = r;
+            next(null, value);
+          });
+          return;
         }
 
-        getValue(stringOrObject[key], function(c) {
+        getValue(stringOrObject[key], function(err, c) {
+          if (err) {
+            return next(err);
+          }
+
           var r = {};
 
           r[key] = c;
@@ -113,10 +122,10 @@ module.exports = function(read, write, exit) {
 
       async.mapSeries(Object.keys(stringOrObject).sort(), getPart, function(err, res) {
         res.forEach(function(r) {
-          util._extend(ret, r);
+          util._extend(value, r);
         });
 
-        callback(ret);
+        callback(null, value);
       });
     }
   };
