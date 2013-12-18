@@ -24,7 +24,7 @@ module.exports = function(read, write, exit) {
   // return a logger method for loglevel
   function logger(level) {
     return function(msg) {
-      var cmd = ['log', msg];
+      var cmd = ['log', typeof msg === 'string' ? msg : JSON.stringify(msg)];
       if (level) {
         cmd = cmd.concat({ level: level });
       }
@@ -58,8 +58,6 @@ module.exports = function(read, write, exit) {
     write.write(JSON.stringify(cmd) + '\n');
     cmd = ['get'].concat(parts);
     write.write(JSON.stringify(cmd) + '\n');
-    // stdout.write(['register'].concat(parts));
-    // stdout.write(['get'].concat(parts));
 
     return stdin;
   }
