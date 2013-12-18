@@ -20,40 +20,16 @@ module.exports = function(read, write, exit) {
     console.error('parse error: ' + err);
   });
 
-  // Stringify data and append newlines to stdout
-  var stdout = es.pipeline(
-    es.stringify(),
-    write
-  );
-  stdout.on('error', function(err) {
-    console.error('write error: ' + err);
-  });
-
 
   // return a logger method for loglevel
   function logger(level) {
-    var pipeline = es.pipeline(
-      es.map(function(data, done) {
-        var cmd = ['log', data];
-        if (level) {
-          cmd = cmd.concat({ level: level });
-        }
-        done(null, cmd);
-      }),
-      stdout
-    );
-
     return function(msg) {
-      if (!arguments.length) {
-        return  pipeline;
-      }
-
       var cmd = ['log', msg];
       if (level) {
         cmd = cmd.concat({ level: level });
       }
 
-      stdout.write(cmd);
+      write.write(JSON.stringify(cmd) + '\n');
     };
   }
 
@@ -78,8 +54,12 @@ module.exports = function(read, write, exit) {
       });
     }
 
-    stdout.write(['register'].concat(parts));
-    stdout.write(['get'].concat(parts));
+    var cmd = ['register'].concat(parts);
+    write.write(JSON.stringify(cmd) + '\n');
+    cmd = ['get'].concat(parts);
+    write.write(JSON.stringify(cmd) + '\n');
+    // stdout.write(['register'].concat(parts));
+    // stdout.write(['get'].concat(parts));
 
     return stdin;
   }
