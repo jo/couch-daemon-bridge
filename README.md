@@ -1,4 +1,4 @@
-os-daemon
+couch-daemon
 =========
 Ease the use of CouchDBs
 [`os_daemons`](http://docs.couchdb.org/en/latest/config/externals.html) with node.
@@ -6,7 +6,7 @@ Ease the use of CouchDBs
 Usage
 -----
 ```js
-var daemon = require('os-daemon')(process.stdin, process.stdout, function() {
+var daemon = require('couch-daemon')(process.stdin, process.stdout, function() {
   process.exit(0);
 });
 

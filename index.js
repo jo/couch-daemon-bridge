@@ -1,4 +1,4 @@
-/* os-daemon
+/* couch-daemon
  * (c) 2013 Johannes J. Schmidt
  */
 
@@ -59,6 +59,15 @@ module.exports = function(read, write, exit) {
   // and register for newstart on change
   function getValue(value, callback) {
     var parts = value.split('.');
+
+    if (parts.length !== 2) {
+      return callback();
+    }
+
+    var env = parts.map(function(p) { return p.toUpperCase(); }).join('_');
+    if (process.env[env]) {
+      return callback(process.env[env]);
+    }
 
     if (typeof callback === 'function') {
       stdin.once('data', callback);
