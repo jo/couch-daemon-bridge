@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "tap test/*.js",
-    "jshint": "jshint -c .jshintrc index.js test/*.js"
+    "jshint": "jshint index.js test/*.js"
   },
   "repository": {
     "type": "git",

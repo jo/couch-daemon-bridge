@@ -1,10 +1,10 @@
-couch-daemon-bridge
-=========
+# couch-daemon-bridge
+[![Build Status](https://travis-ci.org/jo/couch-daemon-bridge.svg?branch=master)](https://travis-ci.org/jo/couch-daemon-bridge)
+
 Ease the use of CouchDBs
 [`os_daemons`](http://docs.couchdb.org/en/latest/config/externals.html) with node.
 
-Usage
------
+## Usage
 ```js
 var daemon = require('couch-daemon-bridge')(process.stdin, process.stdout, function() {
   process.exit(0);
@@ -22,8 +22,7 @@ daemon.get('httpd.bind_address', function(data) {
 
 ```
 
-Contributing
-------------
+## Contributing
 1. Write tests with [tap](https://github.com/isaacs/node-tap)
 2. Lint your code with `npm run jshint`
 3. Run the tests with `npm test`
