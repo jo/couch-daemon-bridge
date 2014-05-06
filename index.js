@@ -1,4 +1,4 @@
-/* couch-daemon
+/* couch-daemon-bridge
  * (c) 2013 Johannes J. Schmidt
  */
 
