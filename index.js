@@ -58,7 +58,7 @@ module.exports = function(options) {
 
     if (typeof callback === 'function') {
       stdin.once('data', function(data) {
-        if (parts.length === 1) {
+        if (parts.length === 1 && typeof data === 'string') {
           data = JSON.parse(data);
         }
         callback(null, data);
