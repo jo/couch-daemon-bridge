@@ -16,10 +16,10 @@ daemon.debug('I have so much wow...');
 daemon.error('An error occured!');
 
 // Request configuration
-daemon.get('httpd', function(data) {
+daemon.get('httpd', function(err, data) {
   // data is now an object holding the whole httpd section
 });
-daemon.get('httpd.bind_address', function(data) {
+daemon.get('httpd.bind_address', function(err, data) {
   // data is now a string holding the value
 });
 ```
@@ -36,7 +36,7 @@ var daemon = require('couch-daemon-bridge')(process.stdin, process.stdout, funct
 });
 
 // Request configuration
-daemon.get('httpd.bind_address', function(data) {
+daemon.get('httpd.bind_address', function(err, data) {
   // data is now a string holding the value of HTTPD_BIND_ADDRESS if present
 });
 ```
@@ -46,4 +46,6 @@ daemon.get('httpd.bind_address', function(data) {
 2. Lint your code with `npm run jshint`
 3. Run the tests with `npm test`
 
-(c) 2013 Johannes J. Schmidt
+## License
+Copyright (c) 2014 Johannes J. Schmidt  
+Licensed under the MIT license.
