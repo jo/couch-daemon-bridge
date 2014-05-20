@@ -6,9 +6,7 @@ Ease the use of CouchDBs
 
 ## Usage
 ```js
-var daemon = require('couch-daemon-bridge')(process.stdin, process.stdout, function() {
-  process.exit(0);
-});
+var daemon = require('couch-daemon-bridge')();
 
 // Log a message
 daemon.info('My daemon is starting.');
@@ -31,15 +29,19 @@ export HTTPD_BIND_ADDRESS="93.184.216.119"
 ```
 
 ```js
-var daemon = require('couch-daemon-bridge')(process.stdin, process.stdout, function() {
-  process.exit(0);
-});
+var daemon = require('couch-daemon-bridge')();
 
 // Request configuration
 daemon.get('httpd.bind_address', function(err, data) {
   // data is now a string holding the value of HTTPD_BIND_ADDRESS if present
 });
 ```
+
+### Configuration
+couch-daemon-bridge takes an object as an optional argument:
+* `stdin`: input stream. Default is `process.stdin`.
+* `stdout`: output stream. Default is `process.stdout`.
+* `exit`: function which is called when stdin closes. Default is to call `process.exit(0)`.
 
 ## Contributing
 1. Write tests with [tap](https://github.com/isaacs/node-tap)

@@ -23,8 +23,12 @@ test('get whole configuration section', function(t) {
     t.equal(data[1], message, 'should have requested "my_section" config');
   });
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.get('my_section', function(err, res) {
@@ -52,8 +56,12 @@ test('get whole configuration section from object', function(t) {
     t.equal(data[1], message, 'should have requested "my_section" config');
   });
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.get({ myconfig: 'my_section' }, function(err, res) {
@@ -77,8 +85,12 @@ test('single configuration key', function(t) {
     t.equal(data[1], message, 'should have requested "my_key" in "my_section" config');
   });
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.get('my_section.my_key', function(err, key) {
@@ -102,8 +114,12 @@ test('single configuration key with empty value', function(t) {
     t.equal(data[1], message, 'should have requested "my_key" in "my_section" config');
   });
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.get('my_section.my_key', function(err, key) {
@@ -120,8 +136,12 @@ test('configuration object', function(t) {
 
   var stdout = es.writeArray(function() {});
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.get({
@@ -140,8 +160,12 @@ test('nested configuration object', function(t) {
 
   var stdout = es.writeArray(function() {});
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.get({
@@ -166,8 +190,12 @@ test('single key after nested configuration object', function(t) {
 
   var stdout = es.writeArray(function() {});
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.get({

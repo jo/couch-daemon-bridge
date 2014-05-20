@@ -6,13 +6,21 @@ var util = require('util');
 var async = require('async');
 var es = require('event-stream');
 
-module.exports = function(read, write, exit) {
+
+module.exports = function(options) {
+  options = options || {};
+
+  options.stdin = options.stdin || process.stdin;
+  options.stdout = options.stdout || process.stdout;
+  options.exit = options.exit || function() { process.exit(0); };
+
+
   // call exit when read stream close
-  read.on('end', exit);
+  options.stdin.on('end', options.exit);
 
   // Parse newline separated JSON from stdin
   var stdin = es.pipeline(
-    read,
+    options.stdin,
     es.split(),
     es.parse()
   );
@@ -30,7 +38,7 @@ module.exports = function(read, write, exit) {
         cmd = cmd.concat({ level: level });
       }
 
-      write.write(JSON.stringify(cmd) + '\n');
+      options.stdout.write(JSON.stringify(cmd) + '\n');
     };
   }
 
@@ -59,9 +67,9 @@ module.exports = function(read, write, exit) {
     }
 
     var cmd = ['register'].concat(parts);
-    write.write(JSON.stringify(cmd) + '\n');
+    options.stdout.write(JSON.stringify(cmd) + '\n');
     cmd = ['get'].concat(parts);
-    write.write(JSON.stringify(cmd) + '\n');
+    options.stdout.write(JSON.stringify(cmd) + '\n');
 
     return stdin;
   }

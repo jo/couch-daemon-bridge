@@ -3,24 +3,28 @@ var test = require('tap').test;
 var daemon = require('..');
 
 test('info logging', function(t) {
-  var input = new stream.Stream();
-  input.readable = true;
+  var stdin = new stream.Stream();
+  stdin.readable = true;
 
-  var output = new stream.Stream();
-  output.writable = true;
-  output.write = function(data) {
+  var stdout = new stream.Stream();
+  stdout.writable = true;
+  stdout.write = function(data) {
     var message = JSON.stringify(['log', 'my message']) + '\n';
 
     return t.equal(data, message, 'should have logged "my message"');
   };
 
-  var d = daemon(input, output, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.info('my message');
 
-  input.emit('end');
+  stdin.emit('end');
 });
 
 test('debug logging', function(t) {
@@ -35,8 +39,12 @@ test('debug logging', function(t) {
     return t.equal(data, message, 'should have logged "my message"');
   };
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.debug('my message');
@@ -56,8 +64,12 @@ test('error logging', function(t) {
     return t.equal(data, message, 'should have logged "my message"');
   };
 
-  var d = daemon(stdin, stdout, function() {
-    t.end();
+  var d = daemon({
+    stdin: stdin,
+    stdout: stdout ,
+    exit: function() {
+      t.end();
+    }
   });
 
   d.error('my message');
