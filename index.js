@@ -25,6 +25,7 @@ module.exports = function(read, write, exit) {
   function logger(level) {
     return function(msg) {
       var cmd = ['log', typeof msg === 'string' ? msg : JSON.stringify(msg)];
+
       if (level) {
         cmd = cmd.concat({ level: level });
       }
@@ -39,7 +40,7 @@ module.exports = function(read, write, exit) {
   function getValue(value, callback) {
     var parts = value.split('.');
 
-    if (parts.length !== 2) {
+    if (parts.length !== 1 && parts.length !== 2) {
       return callback({ error: 'malformed config key', reason: 'Keys must be of the form "section.key"' });
     }
 
@@ -50,6 +51,9 @@ module.exports = function(read, write, exit) {
 
     if (typeof callback === 'function') {
       stdin.once('data', function(data) {
+        if (parts.length === 1) {
+          data = JSON.parse(data);
+        }
         callback(null, data);
       });
     }

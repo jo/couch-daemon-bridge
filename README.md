@@ -16,10 +16,29 @@ daemon.debug('I have so much wow...');
 daemon.error('An error occured!');
 
 // Request configuration
+daemon.get('httpd', function(data) {
+  // data is now an object holding the whole httpd section
+});
 daemon.get('httpd.bind_address', function(data) {
   // data is now a string holding the value
 });
+```
 
+### Environment Variables
+Every configuration can be overridden via environment variable:
+```shell
+export HTTPD_BIND_ADDRESS="93.184.216.119"
+```
+
+```js
+var daemon = require('couch-daemon-bridge')(process.stdin, process.stdout, function() {
+  process.exit(0);
+});
+
+// Request configuration
+daemon.get('httpd.bind_address', function(data) {
+  // data is now a string holding the value of HTTPD_BIND_ADDRESS if present
+});
 ```
 
 ## Contributing

@@ -2,6 +2,65 @@ var es = require('event-stream');
 var test = require('tap').test;
 var daemon = require('..');
 
+
+test('get whole configuration section', function(t) {
+  var config = {
+    my_key: 'my_value'
+  };
+
+  var stdin = es.readArray([
+      JSON.stringify(config)
+    ])
+    .pipe(es.stringify());
+
+  var stdout = es.writeArray(function(err, data) {
+    var message;
+
+    message = JSON.stringify(['register', 'my_section']) + '\n';
+    t.equal(data[0], message, 'should have registered for "my_section"');
+
+    message = JSON.stringify(['get', 'my_section']) + '\n';
+    t.equal(data[1], message, 'should have requested "my_section" config');
+  });
+
+  var d = daemon(stdin, stdout, function() {
+    t.end();
+  });
+
+  d.get('my_section', function(err, res) {
+    t.deepEqual(res, config, 'correct object returned');
+  });
+});
+
+test('get whole configuration section from object', function(t) {
+  var config = {
+    my_key: 'my_value'
+  };
+
+  var stdin = es.readArray([
+      JSON.stringify(config)
+    ])
+    .pipe(es.stringify());
+
+  var stdout = es.writeArray(function(err, data) {
+    var message;
+
+    message = JSON.stringify(['register', 'my_section']) + '\n';
+    t.equal(data[0], message, 'should have registered for "my_section"');
+
+    message = JSON.stringify(['get', 'my_section']) + '\n';
+    t.equal(data[1], message, 'should have requested "my_section" config');
+  });
+
+  var d = daemon(stdin, stdout, function() {
+    t.end();
+  });
+
+  d.get({ myconfig: 'my_section' }, function(err, res) {
+    t.deepEqual(res.myconfig, config, 'correct object returned');
+  });
+});
+
 test('single configuration key', function(t) {
   var stdin = es.readArray([
       'my_value'
