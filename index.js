@@ -4,7 +4,7 @@
 
 var util = require('util');
 var async = require('async');
-var es = require('event-stream');
+var _ =  require('highland');
 
 
 module.exports = function(options) {
@@ -19,10 +19,9 @@ module.exports = function(options) {
   options.stdin.on('end', options.exit);
 
   // Parse newline separated JSON from stdin
-  var stdin = es.pipeline(
-    options.stdin,
-    es.split(),
-    es.parse()
+  var stdin = _.pipeline(
+    _(options.stdin),
+    _.map(JSON.parse)
   );
   stdin.on('error', function(err) {
     console.error('parse error: ' + err);
